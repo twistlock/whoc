@@ -20,4 +20,4 @@ COPY --from=compile /root/fake_ld /lib64/ld-linux-x86-64.so.2
 
 # entrypoint links to /proc/self/exe
 ENTRYPOINT ["/entrypoint"]
-CMD ["127.0.0.1"] # default adderss
+CMD ["127.0.0.1"] # default address
