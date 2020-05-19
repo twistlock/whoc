@@ -1,0 +1,21 @@
+FROM ubuntu:18.04 AS compile
+
+RUN apt update && apt install -y musl-tools
+WORKDIR /root
+COPY ["upload_runtime.c", "upload_runtime.h", "socket_utils.c", "socket_utils.h", \
+      "/root/"]
+
+# In wait_for_exec mode, upload_runtime won't run as the dynamic linker, so we could go with glibc, but no real need to to that...
+RUN musl-gcc -static -fPIC -pie  -Wl,-E upload_runtime.c socket_utils.c -o /root/upload_runtime
+
+
+# -------------------------------- #
+
+
+FROM ubuntu:18.04
+
+COPY --from=compile /root/upload_runtime /upload_runtime
+
+# run upload_runtime in wait_for_exec mode
+ENTRYPOINT ["/upload_runtime", "-e"]
+CMD ["127.0.0.1"] # default adderss
