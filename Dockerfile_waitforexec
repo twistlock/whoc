@@ -5,7 +5,7 @@ WORKDIR /root
 COPY ["upload_runtime.c", "upload_runtime.h", "socket_utils.c", "socket_utils.h", \
       "/root/"]
 
-# In wait_for_exec mode, upload_runtime won't run as the dynamic linker, so we could go with glibc, but no real need to to that...
+# In wait_for_exec mode, upload_runtime won't run as the dynamic linker, so we could go with glibc, but sticking with musl is fine
 RUN musl-gcc -static -fPIC -pie  -Wl,-E upload_runtime.c socket_utils.c -o /root/upload_runtime
 
 
