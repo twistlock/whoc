@@ -15,6 +15,7 @@ import random, string
 RAND_FILE_LEN = 6
 DEFAULT_PORT = 8080
 
+
 class HTTPRequestHandler(server.BaseHTTPRequestHandler):
     """Extend SimpleHTTPRequestHandler to handle PUT requests"""
     def do_POST(self):

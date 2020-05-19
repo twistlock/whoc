@@ -35,10 +35,10 @@ int connect_to_server(const char *server_ip, unsigned int port, time_t send_time
     // Convert IPv4 and IPv6 addresses from text to binary form 
     if(inet_pton(AF_INET, server_ip, &serv_addr.sin_addr) <= 0)  
     { 
-    	if (errno == 0)
-    		printf("[!] connect_to_server: inet_pton() failed, invalid address\n");
-    	else
-        	printf("[!] connect_to_server: inet_pton() failed with '%s'\n", strerror(errno));
+        if (errno == 0)
+            printf("[!] connect_to_server: inet_pton() failed, invalid address\n");
+        else
+            printf("[!] connect_to_server: inet_pton() failed with '%s'\n", strerror(errno));
         close(sockfd);
         return -1; 
     } 
@@ -49,7 +49,7 @@ int connect_to_server(const char *server_ip, unsigned int port, time_t send_time
     if (connect(sockfd, (struct sockaddr *)&serv_addr, sizeof(struct sockaddr)) == -1) 
     {
         printf("[!] connect_to_server: connect() failed with '%s'\n", strerror(errno));
-    	close(sockfd);
+        close(sockfd);
         return -1; 
     }
     return sockfd;
@@ -65,8 +65,8 @@ bool send_all(int socket, void *buffer, size_t length)
         i = send(socket, ptr, length, 0);
         if (i < 0)  // TODO: should this be less than 1?
         {
-        	printf("[!] send_all: send failed with '%s'\n", strerror(errno));
-        	return false;
+            printf("[!] send_all: send failed with '%s'\n", strerror(errno));
+            return false;
         }
         ptr += i;
         length -= i;
@@ -84,7 +84,7 @@ bool sendfile_all(int sockfd, int src_fd, size_t file_size)
         rv = sendfile(sockfd, src_fd, &offset, file_size - offset);
         if (rv < 0) 
         {
-        	printf("[!] send_all: sendfile failed with '%s'\n", strerror(errno));
+            printf("[!] send_all: sendfile failed with '%s'\n", strerror(errno));
             return false;
         }
         offset += rv;
