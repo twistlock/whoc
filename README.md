@@ -19,7 +19,7 @@ $ ../util/fileserver.py
 ```
 From another shell, run the whoc image in your container environment of choice, for example Docker:
 ```console
-$ docker build -f Dockerfile_dynamic -t whoc:latest src  # or ./build.sh
+$ docker build -f Dockerfile_dynamic -t whoc:latest src  # or ./util/build.sh
 $ docker run --rm -it --net=host whoc:latest  # or ./util/run_local.sh
 ```
 See that the file server received the container runtime. Since we run `whoc` under docker, the received container runtime should be [runc](https://github.com/opencontainers/runc). 
