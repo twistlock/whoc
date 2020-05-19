@@ -18,4 +18,4 @@ COPY --from=compile /root/upload_runtime /upload_runtime
 
 # run upload_runtime in wait_for_exec mode
 ENTRYPOINT ["/upload_runtime", "-e"]
-CMD ["127.0.0.1"] # default adderss
+CMD ["127.0.0.1"] # default address
