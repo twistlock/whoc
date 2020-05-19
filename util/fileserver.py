@@ -3,7 +3,7 @@
 """
 Receives file uploads in the form HTTP POST requests and saves each file as:
   - ./$rndstr      : contents of received file
-  - ./$rndstr.path : path of received file is exists in the request
+  - ./$rndstr.path : path of received file if exists in the request
 """
 
 import os
