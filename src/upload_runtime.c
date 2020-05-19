@@ -271,7 +271,7 @@ int main(int argc, char const *argv[])
     rc = readlink(runtime_link, runtime_path_buf, SMALL_BUF_SIZE);
     if (rc < 0)
     {
-        printf("[!] main: readlinkat(runtime_fd) failed with '%s', continuing without the runtime's path\n", strerror(errno));
+        printf("[!] main: readlink(runtime_link) failed with '%s', continuing without the runtime's path\n", strerror(errno));
         runtime_path = NULL;
     }
     else
