@@ -40,7 +40,7 @@ class HTTPRequestHandler(server.BaseHTTPRequestHandler):
         # Generate a random name to save the file as
         save_as = rand_filename(RAND_FILE_LEN)
         if filepath:
-            print(f"[+] Saving file (path={filename}, len={file_length}) to '{save_as}' and '{save_as}.path'")
+            print(f"[+] Saving file (path={filepath}, len={file_length}) to '{save_as}' and '{save_as}.path'")
         else:
             print(f"[+] Received unnamed file (len={file_length}), saving to '{save_as}'")
         
