@@ -12,7 +12,7 @@ This is `whoc` default mode that works against dynamicly linked container runtim
 1. The `whoc` image entrypoint is set to `/proc/self/exe`
 2. The image's dynamic linker (`ld.so`) is replaced with `upload_runtime`
 3. Once the image is run, the container runtime re-executes itself inside the container
-4. Given the runtime is dynamicly linked, the kernel loads our fake dynamic linker, `upload_runtime`, to the runtime process in the container, and passes execution to it. 
+4. Given the runtime is dynamicly linked, the kernel loads our fake dynamic linker (`upload_runtime`) to the runtime process and passes execution to it. 
 5. `upload_runtime` reads the runtime binary through `/proc/self/exe` and sends it to the configured remote server
 
 ![alt text](https://github.com/twistlock/whoc/blob/master/images/whoc_dynamic2.png?raw=true "whoc dynamic mode")
@@ -38,12 +38,12 @@ Set up a file server to receive the extracted container runtime:
 $ cd whoc && mkdir -p stash && cd stash
 $ ../util/fileserver.py 
 ```
-From another shell, run the whoc image in your container environment of choice, for example Docker:
+From another shell, run the `whoc` image in your container environment of choice, for example Docker:
 ```console
 $ docker build -f Dockerfile_dynamic -t whoc:latest src  # or ./util/build.sh
 $ docker run --rm -it --net=host whoc:latest  # or ./util/run_local.sh
 ```
-See that the file server received the container runtime. Since we run `whoc` under docker, the received container runtime should be [runc](https://github.com/opencontainers/runc). 
+See that the file server received the container runtime. Since we run `whoc` under Docker, the received container runtime should be [runc](https://github.com/opencontainers/runc). 
 
 *`--net=host` is only used in local tests so that the `whoc` container could easily reach the host on `127.0.0.1`.*
 
