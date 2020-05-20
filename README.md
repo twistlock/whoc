@@ -3,11 +3,27 @@ A container image that extracts the underlying container runtime and sends it to
 Poke at the underlying container runtime of your favorite CSP container platform!
 
 
-## How
+## How does whoc work?
 As shown by runc [CVE-2019-5736](https://unit42.paloaltonetworks.com/breaking-docker-via-runc-explaining-cve-2019-5736/), Linux fork&exec based container runtimes expose themselves to the containers they're running through `/proc/$pid/exe`. `whoc` uses this to read the container runtime running it.
 
+### Dynamic Mode
+This is `whoc` default mode that works against dynamicly linked container runtimes.
 
-## Run Locally
+1. The `whoc` image entrypoint is set to `/proc/self/exe`
+2. The image's dynamic linker (`ld.so`) is replaced with `upload_runtime`
+3. Once the image is run, the container runtime re-executes itself inside the container
+4. Given the runtime is dynamicly linked, the kernel loads our fake dynamic linker, `upload_runtime`, to the runtime process in the container, and passes execution to it. 
+5. `upload_runtime` reads the runtime binary through `/proc/self/exe` and sends it to the configured remote server
+
+### Wait For Exec Mode
+For staticly linked container runtimes, `whoc` comes in another flavor: `whoc:waitforexec`.
+
+1. `upload_runtime` is the image entrypoint, and runs as the `whoc` container PID 1
+2. The user is expected to exec into the `whoc` container and invoke `/bin/enter`, a file pointing to `/proc/self/exe` (e.g. `docker exec whoc_ctr /bin/enter`)
+3. Once the `/bin/enter` occures, the container runtime re-executes itself inside the container
+4. `upload_runtime` reads the runtime binary through `/proc/$runtime-pid/exe` and sends it to the configured remote server
+
+## Try Locally
 Clone the repository:
 ```console
 $ git clone https://github.com/twistlock/whoc
