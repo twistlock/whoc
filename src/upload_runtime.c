@@ -184,13 +184,13 @@ int guess_next_pid()
 char* uitoa_hack(unsigned int value, char* target, unsigned int length)
 {
     unsigned int curr_original_val;
-    char* ptr = result + length - 1;
+    char* ptr = target + length - 1;
     do {
         curr_original_val = value;
         value /= 10;
         *ptr-- = "0123456789" [curr_original_val - (value * 10)];
     } while ( value );
-    return result;
+    return target;
 }
 
 
