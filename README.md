@@ -49,7 +49,7 @@ See that the file server received the container runtime. Since we run `whoc` und
 
 
 ## Help
-Help for the `whoc` image entry point, `upload_runtime`:
+Help for `whoc`'s main binary, `upload_runtime`:
 ```
 Usage: upload_runtime [options] <server_ip>
 
