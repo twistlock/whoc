@@ -31,7 +31,7 @@ For staticly linked container runtimes, `whoc` comes in another flavor: `whoc:wa
 ## Try Locally
 Clone the repository:
 ```console
-$ git clone https://github.com/twistlock/whoc
+$ git clone https://github.com/twistlock/whoc  # or git@github.com:twistlock/whoc.git
 ```
 Set up a file server to receive the extracted container runtime:
 ```console
@@ -40,8 +40,9 @@ $ ../util/fileserver.py
 ```
 From another shell, run the `whoc` image in your container environment of choice, for example Docker:
 ```console
-$ docker build -f Dockerfile_dynamic -t whoc:latest src  # or ./util/build.sh
-$ docker run --rm -it --net=host whoc:latest  # or ./util/run_local.sh
+$ cd whoc
+$ docker build -f Dockerfile_dynamic -t whoc:latest src  # or ./build.sh
+$ docker run --rm -it --net=host whoc:latest 127.0.0.1  # or ./util/run_local.sh
 ```
 See that the file server received the container runtime. Since we run `whoc` under Docker, the received container runtime should be [runc](https://github.com/opencontainers/runc). 
 
