@@ -89,7 +89,7 @@ def main():
     else:
         port = DEFAULT_PORT
 
-    server_address = ("127.0.0.1", port)
+    server_address = ("0.0.0.0", port)
     httpd = server.HTTPServer(server_address, HTTPRequestHandler)
     print("Waiting for file uploads at {}\n".format(port))
     httpd.serve_forever()
