@@ -23,7 +23,6 @@ static struct option long_options[] =
     {"port", required_argument, NULL, 'p'},
     {"exec", no_argument, NULL, 'e'},
     {"exec-extra-argument", required_argument, NULL, 'a'},
-    {"pid-count", required_argument, NULL, 'c'},
     {NULL, 0, NULL, 0}
     // TODO: add quiet mode (no prints to stdout / just error messages)
 };
@@ -35,7 +34,6 @@ typedef struct config
 	unsigned int port;
 	bool wait_for_exec;
 	const char * exec_extra_arg;
-	unsigned int pid_count;
 } config;
 
 
@@ -74,14 +72,8 @@ void print_help(void);
 
 
 /* Guess the next pid in our pid namespace by forking a child process and inspecting his pid */ 
-int guess_next_pid(void);
+pid_t guess_next_pid(void);
 
 
 /* Creates an executable file at enter_bin_path containing "#!/proc/self/exe extra_arg" */
 bool prepare_enter_bin_for_exec(const char * enter_bin_path, const char * extra_arg);
-
-
-/* Place 'value' at 'target' as a string, assuming 'length' chars are reserved for it                       *
- * The value will be placed at the end of the reserved space: uitoa_hack(12, "abcd" , 3) -> target = "a12d" *
- * More then length chars may be written (no intended behavior): uitoa_hack(12, "a" , 1) -> target-1 = "12" */
- char* uitoa_hack(unsigned int value, char* target, unsigned int length);

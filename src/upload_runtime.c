@@ -1,7 +1,6 @@
 #include "upload_runtime.h"
 
 
-
 void print_help(void)
 {
     char * help_format = \
@@ -9,18 +8,15 @@ void print_help(void)
 "Options:\n"
 " -p, --port                 Port of remote server, defaults to %d\n"
 " -e, --exec                 Wait for exec mode for static container runtimes, wait until an exec to the container occurred\n"
-" -a, --exec-extra-argument  In exec mode, pass an additional argument to the runtime so it won't exit quickly (e.g. '--help')\n"
-" -c, --pid-count            In exec mode, how many pids to check when searching for the runtime process, defaults to %d\n";
-    
+" -a, --exec-extra-argument  In exec mode, pass an additional argument to the runtime so it won't exit quickly (e.g. '--help')\n";  
     printf(help_format, DEFAULT_PORT, DEFAULT_PID_COUNT);
 }
-
 
 
 int parse_arguments(config * conf, int argc, char const *argv[])
 {
     int opt;
-    while ((opt = getopt_long(argc, (char * const*)argv, "p:c:a:e", long_options, NULL)) != -1)
+    while ((opt = getopt_long(argc, (char * const*)argv, "p:a:e", long_options, NULL)) != -1)
     {
         switch (opt) 
         {
@@ -32,9 +28,6 @@ int parse_arguments(config * conf, int argc, char const *argv[])
                 break;
             case 'a':
                 conf->exec_extra_arg = optarg;
-                break;
-            case 'c':
-                conf->pid_count = atoi(optarg);
                 break;
             default: /* '?' */
                 print_help();
@@ -50,7 +43,6 @@ int parse_arguments(config * conf, int argc, char const *argv[])
     return 0;
 
 }
-
 
 
 bool send_post_file_http_header(int sockfd, const char * server_ip, unsigned long long file_size, const char * filename)
@@ -100,6 +92,7 @@ bool send_post_file_http_header(int sockfd, const char * server_ip, unsigned lon
     return send_all(sockfd, (void *) header, (size_t) strlen(header));
 
 }
+
 
 bool prepare_enter_bin_for_exec(const char * enter_bin_path, const char * extra_arg)
 {
@@ -157,7 +150,7 @@ bool prepare_enter_bin_for_exec(const char * enter_bin_path, const char * extra_
 }
 
 
-int guess_next_pid()
+pid_t guess_next_pid()
 {
     pid_t child_pid;
     child_pid = fork();
@@ -181,33 +174,19 @@ int guess_next_pid()
 }
 
 
-char* uitoa_hack(unsigned int value, char* target, unsigned int length)
-{
-    unsigned int curr_original_val;
-    char* ptr = target + length - 1;
-    do {
-        curr_original_val = value;
-        value /= 10;
-        *ptr-- = "0123456789" [curr_original_val - (value * 10)];
-    } while ( value );
-    return target;
-}
-
-
 int main(int argc, char const *argv[])
 {
-    int sockfd, guessed_next_pid, runtime_fd = -1;
+    int sockfd, runtime_fd = -1;
     struct stat file_info;
     char runtime_path_buf[SMALL_BUF_SIZE];  
     char * runtime_path, *runtime_link;
-    size_t rc;
+    int rc;
 
     config conf = {
         .server_ip = NULL, 
         .port = DEFAULT_PORT, 
         .wait_for_exec = false,
         .exec_extra_arg = NULL,
-        .pid_count = DEFAULT_PID_COUNT
     };
     if (parse_arguments(&conf, argc, argv) != 0)
         return 1;
@@ -227,8 +206,10 @@ int main(int argc, char const *argv[])
     else
     {   
         // Running as a normal process in the container, waiting for the runtime to exec in
-        char link_template[] = "/proc//////exe";  // formated to leave space for 4 digits (/proc/----/exe)
-        pid_t curr_pid, biggest_checked_pid;
+        char runtime_link_buf[SMALL_BUF_SIZE];
+        pid_t guessed_next_pid;
+
+        printf("[+] Running in wait for exec mode; preparing '%s'\n", DEFAULT_EXEC_ENTER_BIN);
 
         // Create the /bin/enter file containing a shebang that points to the container runtime (#!/proc/self/exe)
         if (prepare_enter_bin_for_exec(DEFAULT_EXEC_ENTER_BIN, conf.exec_extra_arg) == false)
@@ -238,36 +219,49 @@ int main(int argc, char const *argv[])
         guessed_next_pid = guess_next_pid();
         if (guessed_next_pid < 0)
             return 1; // error printed in guess_next_pid
-        biggest_checked_pid = (unsigned int)(guessed_next_pid) + conf.pid_count;
-        if (biggest_checked_pid > MAX_PID)  
+
+        // Prepare /proc/$guessed_pid/exe
+        rc = snprintf(runtime_link_buf, SMALL_BUF_SIZE, "/proc/%d/exe", guessed_next_pid);
+        if (rc < 0) 
         {
-            printf("[!] main: pid (%u) too large (max %u) for our hacky way of catching the runtime process\n", biggest_checked_pid, MAX_PID);
-            return 1; // TODO: perhaps instead of exiting, set biggest_checked_pid=MAX_PID given that guessed_next_pid < MAX_PID
+            printf("[!] main: snprintf(runtime_link_buf, /proc/%%d/exe) failed with '%s'\n", strerror(errno));
+            return 1;
+        }
+        if (rc >= SMALL_BUF_SIZE)
+        {
+            printf("[!] main: snprintf(runtime_link_buf, /proc/%%d/exe) failed, not enough space in buffer (required:%d, bufsize:%d)", rc, SMALL_BUF_SIZE);
+            return 1;
         }
 
-        printf("[+] Waiting for runtime to exec into container... (do 'whoc-ctr-name exec /bin/enter') \n");
+        // Try to catch the runtime
+        printf("[+] Waiting for the runtime to exec into container... (do '$runtime exec whoc-ctr-name /bin/enter') \n");
         while (runtime_fd < 0)
+            runtime_fd = open(runtime_link_buf, O_RDONLY);
+        printf("[+] Got runtime as /proc/%u/exe\n", guessed_next_pid);
+
+        // The runtime process may have already exited, so we'll try to read the runtime's path from the fd we opened for it
+        // Prepare /proc/self/fd/runtime_fd
+        rc = snprintf(runtime_link_buf, SMALL_BUF_SIZE, "/proc/self/fd/%d", runtime_fd);
+        if (rc < 0) 
         {
-            for (curr_pid = guessed_next_pid; curr_pid < biggest_checked_pid; ++curr_pid)
-            {
-                // TODO: We're trying to be faster than sprintf("/proc/%d/exe", currentpid), is this really better?
-                uitoa_hack(curr_pid, link_template + 6, 4); // copy curr_pid to /proc/{}/exe (strlen('/proc/')=6, strlen('////')=4)
-                runtime_fd = open(link_template, O_RDONLY);
-                if (runtime_fd > 0)
-                    break;
-                memcpy(link_template + 6, "////" , 4);    // restore link_template to /proc//////exe
-            }
+            printf("[!] main: snprintf(/proc/self/fd/%%d) failed with '%s'\n", strerror(errno));
+            return 1;
         }
-        runtime_link = link_template;
-        printf("[+] Got runtime as /proc/%u/exe\n", curr_pid);
+        if (rc >= SMALL_BUF_SIZE)
+        {
+            printf("[!] main: snprintf(runtime_link_buf, /proc/self/fd/%%d) failed, not enough space in buffer (required:%d, bufsize:%d)", rc, SMALL_BUF_SIZE);
+            return 1;
+        }
+        runtime_link = runtime_link_buf;
     }
 
-    // get container runtime size
+    /* Get container runtime size */
     if(fstat(runtime_fd, &file_info) != 0)
     {
         printf("[!] upload_file: fstat(fp) failed with '%s'\n", strerror(errno));
         goto close_runtime_ret_1;
     }
+    /* Try to get the runtime's path on the host */
     rc = readlink(runtime_link, runtime_path_buf, SMALL_BUF_SIZE);
     if (rc < 0)
     {
