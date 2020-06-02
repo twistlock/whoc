@@ -9,7 +9,7 @@ void print_help(void)
 " -p, --port                 Port of remote server, defaults to %d\n"
 " -e, --exec                 Wait for exec mode for static container runtimes, wait until an exec to the container occurred\n"
 " -a, --exec-extra-argument  In exec mode, pass an additional argument to the runtime so it won't exit quickly (e.g. '--help')\n";  
-    printf(help_format, DEFAULT_PORT, DEFAULT_PID_COUNT);
+    printf(help_format, DEFAULT_PORT);
 }
 
 
@@ -186,7 +186,7 @@ int main(int argc, char const *argv[])
         .server_ip = NULL, 
         .port = DEFAULT_PORT, 
         .wait_for_exec = false,
-        .exec_extra_arg = NULL,
+        .exec_extra_arg = NULL
     };
     if (parse_arguments(&conf, argc, argv) != 0)
         return 1;

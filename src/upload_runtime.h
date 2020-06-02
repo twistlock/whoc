@@ -42,7 +42,6 @@ typedef struct config
 
 
 #define DEFAULT_PORT 8080
-#define DEFAULT_PID_COUNT 6
 
 #define SEND_TIMEOUT 300 // 5 minutes
 #define RECV_TIMEOUT 120 // 2 minutes
