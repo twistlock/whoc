@@ -57,5 +57,7 @@ Usage: upload_runtime [options] <server_ip>
 Options:
  -p, --port                 Port of remote server, defaults to 8080
  -e, --exec                 Wait for exec mode for static container runtimes, waits until an exec to the container occurred
- -a, --exec-extra-argument  In exec mode, pass an additional argument to the runtime so it won't exit quickly (e.g. '--help')
+ -b, --exec-bin             In exec mode, overrides the default binary created for the exec, default is /bin/enter
+
+ -a, --exec-extra-argument  In exec mode, pass an additional argument to the runtime so it won't exit quickly
 ```

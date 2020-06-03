@@ -9,7 +9,7 @@ void print_help(void)
 " -p, --port                 Port of remote server, defaults to %d\n"
 " -e, --exec                 Wait for exec mode for static container runtimes, wait until an exec to the container occurred\n"
 " -b, --exec-bin             In exec mode, overrides the default binary created for the exec, default is %d\n"
-" -a, --exec-extra-argument  In exec mode, pass an additional argument to the runtime so it won't exit quickly (e.g. '--help')\n";  
+" -a, --exec-extra-argument  In exec mode, pass an additional argument to the runtime so it won't exit quickly\n";
     printf(help_format, DEFAULT_PORT, DEFAULT_EXEC_BIN);
 }
 
