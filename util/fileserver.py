@@ -30,12 +30,14 @@ class HTTPRequestHandler(server.BaseHTTPRequestHandler):
         # Try to get the file's path if exists in the request
         filepath = ""
         if 'Content-Disposition' in self.headers:
-            try: 
-                # Extract file path from 'filename="/some/file/path"; otherfield="othervalue"...'
-                after_filename = self.headers['Content-Disposition'].split("filename=")[-1]
-                filepath = after_filename.split(";")[0].strip("\"") 
-            except Exception: # very lazy try/except clause
-                pass
+            if 'filename' in self.headers['Content-Disposition']:
+                try:
+                    # Extract file path from 'filename="/some/file/path"; otherfield="othervalue"...'
+                    after_filename = self.headers['Content-Disposition'].split("filename=")[-1]
+                    filepath = after_filename.split(";")[0].strip("\"") 
+                except Exception: # very lazy try/except clause
+                    filepath = ""
+
         
         # Generate a random name to save the file as
         save_as = rand_filename(RAND_FILE_LEN)

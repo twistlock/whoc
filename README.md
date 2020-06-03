@@ -60,4 +60,6 @@ Options:
  -e, --exec                 Wait for exec mode for static container runtimes, waits until an exec to the container occurred
  -b, --exec-bin             In exec mode, overrides the default binary created for the exec, default is /bin/enter
  -a, --exec-extra-argument  In exec mode, pass an additional argument to the runtime so it won't exit quickly
+ -r, --exec-readdir-proc    In exec mode, instead of guessing the runtime pid (which gives whoc one shot of catching the runtime),
+                            find the runtime by searching for new processes under '/proc'
 ```
