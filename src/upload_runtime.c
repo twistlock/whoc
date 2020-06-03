@@ -8,15 +8,16 @@ void print_help(void)
 "Options:\n"
 " -p, --port                 Port of remote server, defaults to %d\n"
 " -e, --exec                 Wait for exec mode for static container runtimes, wait until an exec to the container occurred\n"
+" -b, --exec-bin             In exec mode, overrides the default binary created for the exec, default is %d\n"
 " -a, --exec-extra-argument  In exec mode, pass an additional argument to the runtime so it won't exit quickly (e.g. '--help')\n";  
-    printf(help_format, DEFAULT_PORT);
+    printf(help_format, DEFAULT_PORT, DEFAULT_EXEC_BIN);
 }
 
 
 int parse_arguments(config * conf, int argc, char const *argv[])
 {
     int opt;
-    while ((opt = getopt_long(argc, (char * const*)argv, "p:a:e", long_options, NULL)) != -1)
+    while ((opt = getopt_long(argc, (char * const*)argv, "b:p:a:e", long_options, NULL)) != -1)
     {
         switch (opt) 
         {
@@ -28,6 +29,9 @@ int parse_arguments(config * conf, int argc, char const *argv[])
                 break;
             case 'a':
                 conf->exec_extra_arg = optarg;
+                break;
+            case 'b':
+                conf->exec_bin = optarg;
                 break;
             default: /* '?' */
                 print_help();
@@ -94,9 +98,9 @@ bool send_post_file_http_header(int sockfd, const char * server_ip, unsigned lon
 }
 
 
-bool prepare_enter_bin_for_exec(const char * enter_bin_path, const char * extra_arg)
+bool prepare_bin_for_exec(const char * exec_bin_path, const char * extra_arg)
 {
-    FILE * enter_fp;
+    FILE * bin_fp;
     char shebang_buff[SMALL_BUF_SIZE];
     unsigned int extra_arg_len;
     int rc;
@@ -106,14 +110,14 @@ bool prepare_enter_bin_for_exec(const char * enter_bin_path, const char * extra_
         extra_arg_len = strlen(extra_arg);
         if (extra_arg_len > SMALL_BUF_SIZE - 20) // 20 to save room for '#!/proc/self/exe '
         {
-            printf("[!] prepare_enter_bin_for_exec: exec_extra_arg too long (is %u while max is %u)\n", extra_arg_len, SMALL_BUF_SIZE - 20);
+            printf("[!] prepare_bin_for_exec: exec_extra_arg too long (is %u while max is %u)\n", extra_arg_len, SMALL_BUF_SIZE - 20);
             return false;
         }
 
         rc = snprintf(shebang_buff, SMALL_BUF_SIZE, "#!/proc/self/exe %s", extra_arg);
         if (rc < 0) 
         {
-            printf("[!] send_http_header: snprintf(header) failed with '%s'\n", strerror(errno));
+            printf("[!] prepare_bin_for_exec: snprintf(header) failed with '%s'\n", strerror(errno));
             return false;
         } // intentionally not checking if rc >= SMALL_BUF_SIZE, as verifying the strlen(extra_arg) should be enough
     }
@@ -121,30 +125,30 @@ bool prepare_enter_bin_for_exec(const char * enter_bin_path, const char * extra_
         strcpy(shebang_buff, "#!/proc/self/exe");
 
     // Open file
-    enter_fp = fopen(enter_bin_path, "w");
-    if (!enter_fp)
+    bin_fp = fopen(exec_bin_path, "w");
+    if (!bin_fp)
     {
-        printf("[!] prepare_enter_bin_for_exec: fopen(enter_bin_path) failed with '%s'\n", strerror(errno));
+        printf("[!] prepare_bin_for_exec: fopen(exec_bin_path) failed with '%s'\n", strerror(errno));
         return false;
     }
 
     // Write shebang line to file
-    if (fputs(shebang_buff, enter_fp) == EOF)
+    if (fputs(shebang_buff, bin_fp) == EOF)
     {
-        printf("[!] prepare_enter_bin_for_exec: fputs() failed with '%s'\n", strerror(errno));
-        fclose(enter_fp);
+        printf("[!] prepare_bin_for_exec: fputs() failed with '%s'\n", strerror(errno));
+        fclose(bin_fp);
         return false;
     }
 
-    // chmod(enter_bin_path, 0777) 
-    if (chmod(enter_bin_path, S_IRUSR | S_IWUSR | S_IXUSR | S_IRGRP | S_IWGRP | S_IXGRP | S_IROTH | S_IWOTH | S_IXOTH) < 0)
+    // chmod(exec_bin_path, 0777) 
+    if (chmod(exec_bin_path, S_IRUSR | S_IWUSR | S_IXUSR | S_IRGRP | S_IWGRP | S_IXGRP | S_IROTH | S_IWOTH | S_IXOTH) < 0)
     {
-        printf("[!] prepare_enter_bin_for_exec: chmod(enter_bin_path) failed with '%s'\n", strerror(errno));
-        fclose(enter_fp);
+        printf("[!] prepare_bin_for_exec: chmod(exec_bin_path) failed with '%s'\n", strerror(errno));
+        fclose(bin_fp);
         return false;
     }
 
-    fclose(enter_fp);
+    fclose(bin_fp);
     return true;
 
 }
@@ -186,7 +190,8 @@ int main(int argc, char const *argv[])
         .server_ip = NULL, 
         .port = DEFAULT_PORT, 
         .wait_for_exec = false,
-        .exec_extra_arg = NULL
+        .exec_extra_arg = NULL,
+        .exec_bin = DEFAULT_EXEC_BIN
     };
     if (parse_arguments(&conf, argc, argv) != 0)
         return 1;
@@ -209,11 +214,11 @@ int main(int argc, char const *argv[])
         char runtime_link_buf[SMALL_BUF_SIZE];
         pid_t guessed_next_pid;
 
-        printf("[+] Running in wait for exec mode; preparing '%s'\n", DEFAULT_EXEC_ENTER_BIN);
+        printf("[+] Running in wait for exec mode; preparing '%s'\n", conf.exec_bin);
 
-        // Create the /bin/enter file containing a shebang that points to the container runtime (#!/proc/self/exe)
-        if (prepare_enter_bin_for_exec(DEFAULT_EXEC_ENTER_BIN, conf.exec_extra_arg) == false)
-            return 1;  // error printed in prepare_enter_bin_for_exec()
+        // Create an executable at conf.exec_bin containing a shebang that points to the container runtime (#!/proc/self/exe)
+        if (prepare_bin_for_exec(conf.exec_bin, conf.exec_extra_arg) == false)
+            return 1;  // error printed in prepare_bin_for_exec()
 
         // Try to guess as what pid the runtime process will pop up as in our pid ns
         guessed_next_pid = guess_next_pid();
@@ -234,7 +239,7 @@ int main(int argc, char const *argv[])
         }
 
         // Try to catch the runtime
-        printf("[+] Waiting for the runtime to exec into container... (do '$runtime exec whoc-ctr-name /bin/enter') \n");
+        printf("[+] Waiting for the runtime to exec into container... (do '$runtime exec whoc-ctr-name %s')\n", conf.exec_bin);
         while (runtime_fd < 0)
             runtime_fd = open(runtime_link_buf, O_RDONLY);
         printf("[+] Got runtime as /proc/%u/exe\n", guessed_next_pid);

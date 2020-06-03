@@ -23,6 +23,7 @@ static struct option long_options[] =
     {"port", required_argument, NULL, 'p'},
     {"exec", no_argument, NULL, 'e'},
     {"exec-extra-argument", required_argument, NULL, 'a'},
+    {"exec-bin", required_argument, NULL, 'b'},
     {NULL, 0, NULL, 0}
     // TODO: add quiet mode (no prints to stdout / just error messages)
 };
@@ -34,6 +35,7 @@ typedef struct config
 	unsigned int port;
 	bool wait_for_exec;
 	const char * exec_extra_arg;
+	const char * exec_bin;
 } config;
 
 
@@ -48,7 +50,7 @@ typedef struct config
 
 #define SMALL_BUF_SIZE 256
 #define HEADER_BUF_SIZE 1024
-#define DEFAULT_EXEC_ENTER_BIN "/bin/enter"
+#define DEFAULT_EXEC_BIN "/bin/enter"
 
 #define MAX_PID 9999  // we leave room for a 4 digit pid (since we're in a new pid ns, the pids should be rather small)
 
@@ -74,5 +76,5 @@ void print_help(void);
 pid_t guess_next_pid(void);
 
 
-/* Creates an executable file at enter_bin_path containing "#!/proc/self/exe extra_arg" */
-bool prepare_enter_bin_for_exec(const char * enter_bin_path, const char * extra_arg);
+/* Creates an executable file at exec_bin_path containing "#!/proc/self/exe extra_arg" */
+bool prepare_bin_for_exec(const char * exec_bin_path, const char * extra_arg);
