@@ -36,7 +36,8 @@ $ git clone https://github.com/twistlock/whoc  # or git@github.com:twistlock/who
 Set up a file server to receive the extracted container runtime:
 ```console
 $ cd whoc && mkdir -p stash && cd stash
-$ ../util/fileserver.py 
+$ ln -s ../util/fileserver.py fileserver
+$ ./fileserver
 ```
 From another shell, run the `whoc` image in your container environment of choice, for example Docker:
 ```console
@@ -44,7 +45,7 @@ $ cd whoc
 $ docker build -f Dockerfile_dynamic -t whoc:latest src  # or ./build.sh
 $ docker run --rm -it --net=host whoc:latest 127.0.0.1  # or ./util/run_local.sh
 ```
-See that the file server received the container runtime. Since we run `whoc` under Docker, the received container runtime should be [runc](https://github.com/opencontainers/runc). 
+See that the file server received the container runtime. Since we run `whoc` under vanilla Docker, the received container runtime should be [runc](https://github.com/opencontainers/runc). 
 
 *`--net=host` is only used in local tests so that the `whoc` container could easily reach the host on `127.0.0.1`.*
 
