@@ -15,7 +15,7 @@ This is `whoc` default mode that works against dynamicly linked container runtim
 4. Given the runtime is dynamicly linked, the kernel loads our fake dynamic linker (`upload_runtime`) to the runtime process and passes execution to it. 
 5. `upload_runtime` reads the runtime binary through `/proc/self/exe` and sends it to the configured remote server
 
-![alt text](https://github.com/twistlock/whoc/blob/master/images/whoc_dynamic2.png?raw=true "whoc dynamic mode")
+![alt text](https://github.com/twistlock/whoc/blob/master/images/whoc_dynamic.png?raw=true "whoc dynamic mode")
 
 
 ### Wait For Exec Mode
@@ -26,7 +26,7 @@ For staticly linked container runtimes, `whoc` comes in another flavor: `whoc:wa
 3. Once the exec occures, the container runtime re-executes itself inside the container
 4. `upload_runtime` reads the runtime binary through `/proc/$runtime-pid/exe` and sends it to the configured remote server
 
-![alt text](https://github.com/twistlock/whoc/blob/master/images/whoc_waitforexec2.png?raw=true "whoc wait for exec mode after exec")
+![alt text](https://github.com/twistlock/whoc/blob/master/images/whoc_waitforexec.png?raw=true "whoc wait for exec mode after exec")
 
 ## Try Locally
 Clone the repository:
