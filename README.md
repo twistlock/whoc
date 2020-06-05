@@ -18,7 +18,7 @@ This is `whoc` default mode that works against dynamicly linked container runtim
 ![alt text](https://github.com/twistlock/whoc/blob/master/images/whoc_dynamic.png?raw=true "whoc dynamic mode")
 
 
-### Wait For Exec Mode
+### Wait-For-Exec Mode
 For staticly linked container runtimes, `whoc` comes in another flavor: `whoc:waitforexec`.
 
 1. `upload_runtime` is the image entrypoint, and runs as the `whoc` container PID 1
@@ -26,7 +26,7 @@ For staticly linked container runtimes, `whoc` comes in another flavor: `whoc:wa
 3. Once the exec occures, the container runtime re-executes itself inside the container
 4. `upload_runtime` reads the runtime binary through `/proc/$runtime-pid/exe` and sends it to the configured remote server
 
-![alt text](https://github.com/twistlock/whoc/blob/master/images/whoc_waitforexec.png?raw=true "whoc wait for exec mode after exec")
+![alt text](https://github.com/twistlock/whoc/blob/master/images/whoc_waitforexec.png?raw=true "whoc wait-for-exec mode")
 
 ## Try Locally
 Clone the repository:
@@ -57,7 +57,7 @@ Usage: upload_runtime [options] <server_ip>
 
 Options:
  -p, --port                 Port of remote server, defaults to 8080
- -e, --exec                 Wait for exec mode for static container runtimes, waits until an exec to the container occurred
+ -e, --exec                 Wait-for-exec mode for static container runtimes, waits until an exec to the container occurred
  -b, --exec-bin             In exec mode, overrides the default binary created for the exec, default is /bin/enter
  -a, --exec-extra-argument  In exec mode, pass an additional argument to the runtime so it won't exit quickly
  -r, --exec-readdir-proc    In exec mode, instead of guessing the runtime pid (which gives whoc one shot of catching the runtime),

@@ -10,7 +10,8 @@
 #include <arpa/inet.h>      // for inet_pton
 #include <sys/time.h>       // for time_t
 
-/* Functions */
+
+// - Functions - //
 
 /* Connects to remote server though TCP */
 int connect_to_server(const char *server_ip, unsigned int port, time_t send_timeout, time_t recv_timeout);
@@ -20,6 +21,3 @@ bool send_all(int socket, void *buffer, size_t length);
 
 /* Send file to socket */
 bool sendfile_all(int sockfd, int src_fd, size_t file_size);
-
-
-

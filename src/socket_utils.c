@@ -91,6 +91,3 @@ bool sendfile_all(int sockfd, int src_fd, size_t file_size)
     }
     return true;
 }
-
-
-
