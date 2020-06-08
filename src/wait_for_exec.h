@@ -37,12 +37,12 @@ pid_t guess_next_pid(void);
 bool prepare_bin_for_exec(const char * exec_bin_path, const char * extra_arg);
 
 
-/* Returns a file descriptor pointing to the runtime that exec-ed into the whoc container.         *
- * Guesses the next pid the ctr pid ns, an continuously tries to open('/proc/$guessed_rt_pid/exe') */
+/* Returns a file descriptor pointing to the runtime that exec-ed into the whoc container.             *
+ * Guesses the next pid in the ctr pid ns, and continuously tries to open('/proc/$guessed_rt_pid/exe') */
 int catch_rt_guess_pid(const char * exec_bin_path);
 
 
-/* Returns a file descriptor pointing to the runtime that execed into the whoc container.                         *                                           
+/* Returns a file descriptor pointing to the runtime that exec-ed into the whoc container.                        *                                           
  * Finds the runtime process by searching for new (i.e. not PID 1, us) numeric dentries in the '/proc' directory. *
- * Some limitations are documented in the function implementation                                                 */
+ * Limitations to this method are documented in the function implementation                                       */
 int catch_rt_getdents_proc(const char * exec_bin_path);
