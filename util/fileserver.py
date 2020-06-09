@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 
 """
-Receives file uploads in the form HTTP POST requests and saves each file as:
-  - ./$rndstr      : contents of received file
-  - ./$rndstr.path : path of received file if exists in the request
+Receives file uploads from HTTP POST requests and saves each file as:
+  - ./${randstr}      : contents of received file
+  - ./${randstr}.path : path of received file (if exists in the request)
 """
 
 import os
@@ -19,7 +19,7 @@ DEFAULT_PORT = 8080
 class HTTPRequestHandler(server.BaseHTTPRequestHandler):
     """Extend SimpleHTTPRequestHandler to handle PUT requests"""
     def do_POST(self):
-        """Save a file following a HTTP POST request"""
+        """Save a file from an HTTP POST request"""
         # Get the file's length
         if 'Content-Length' not in self.headers: 
             printf("[!] No Content-Length header")    
@@ -68,18 +68,18 @@ class HTTPRequestHandler(server.BaseHTTPRequestHandler):
 
     def send_response_end_headers(self, code):
         self.send_response(code)
-        print()
+        print()  # create a newline between requests for prettier output
         self.end_headers()     
 
 
-# Get a random, non-existent filename with length chars
+# Get a random, non-existent filename of @length chars
 def rand_filename(length):
     filename = rand_word(length)
     while os.path.exists(filename):
         filename = rand_word(length)
     return filename
 
-# Generate a random word with length chars
+# Generate a random word of @length chars
 def rand_word(length):
    letters = string.ascii_lowercase
    return ''.join(random.choice(letters) for i in range(length))
