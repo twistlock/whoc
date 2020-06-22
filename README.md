@@ -29,14 +29,16 @@ For staticly linked container runtimes, `whoc` comes in another flavor: `whoc:wa
 ![alt text](https://github.com/twistlock/whoc/blob/master/images/whoc_waitforexec.png?raw=true "whoc wait-for-exec mode")
 
 ## Try Locally
-Clone the repository:
+You'll need `docker` and `python3` installed. Clone the repository:
 ```console
-$ git clone https://github.com/twistlock/whoc  # or git@github.com:twistlock/whoc.git
+$ git clone git@github.com:twistlock/whoc.git
 ```
+
 Set up a file server to receive the extracted container runtime:
 ```console
-$ cd whoc && mkdir -p stash && cd stash
-$ ln -s ../util/fileserver.py fileserver
+$ cd whoc
+$ mkdir -p stash && cd stash
+$ ln -s ../util/fileserver.py fileserver 
 $ ./fileserver
 ```
 From another shell, run the `whoc` image in your container environment of choice, for example Docker:
