@@ -154,11 +154,11 @@ int catch_rt_getdents_proc(const char * exec_bin_path)
         {
             d = (struct linux_dirent64 *) (dir_buf + bpos);
 
-            // Check that's it's a process dir (first char is numeric) and that it's not us (PID 1)
-            // This won't work for runtimes like rkt and lxd, where we aren't pid 1, and where other services exist in the container 
-            // that may spawn processes at random times. This is a conscious choice as whoc is mostly helpful for gaining visibility into CSP offerings
-            // which mostly give the docker-like/runc/crun experience, where you use a docker image and have complete control over the processes in your pid ns.
-            // In the future, if it's required, a more robust solution can be used (though it will definitely be slower and probably miss short-lived processes)
+            // Check if the currect directory is a process directory (first char is numeric) and that it's not us (PID 1)
+            // This won't work for runtimes like rkt and lxd, where we aren't pid 1, and where other services exist in the container that
+            // may spawn processes at random times. This is a conscious choice as whoc is mostly helpful for gaining visibility into CSP offerings which
+            // commonly give the docker-like/runc/crun experience, where you use a docker image and have complete control over the processes in your pid ns.
+            // In the future, if it's required, a more robust solution can be used (though it'll probably be slower and miss short-lived processes).
             if (isdigit(d->d_name[0]) && (d->d_name[0] != '1'))                                                          
             {
                 sprintf(rt_pexe_path, "/proc/%s/exe", d->d_name);  // we need to be fast, don't check errors
