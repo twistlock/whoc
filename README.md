@@ -4,7 +4,7 @@ Poke at the underlying container runtime of your favorite CSP container platform
 
 
 ## How does it work?
-As shown by runc [CVE-2019-5736](https://unit42.paloaltonetworks.com/breaking-docker-via-runc-explaining-cve-2019-5736/), Linux fork&exec based container runtimes expose themselves to the containers they're running through `/proc/$pid/exe`. `whoc` uses this to read the container runtime running it.
+As shown by runc [CVE-2019-5736](https://unit42.paloaltonetworks.com/breaking-docker-via-runc-explaining-cve-2019-5736/), Linux fork&exec based container runtimes expose themselves to the containers they're running through `/proc/self/exe`. `whoc` uses this to read the container runtime running it.
 
 ### Dynamic Mode
 This is `whoc` default mode that works against dynamicly linked container runtimes.
