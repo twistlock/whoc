@@ -49,7 +49,7 @@ $ docker run --rm -it --net=host whoc:latest 127.0.0.1  # or ./util/run_local.sh
 ```
 See that the file server received the container runtime. Since we run `whoc` under vanilla Docker, the received container runtime should be [runc](https://github.com/opencontainers/runc). 
 
-*`--net=host` is only used in local tests so that the `whoc` container could easily reach the host on `127.0.0.1`.*
+*`--net=host` is only used in local tests so that the `whoc` container could easily reach the fileserver on the host via `127.0.0.1`.*
 
 
 ## Help
