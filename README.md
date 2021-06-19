@@ -23,7 +23,7 @@ For statically linked container runtimes, `whoc` comes in another flavor: `whoc:
 
 1. `upload_runtime` is the image entrypoint, and runs as the `whoc` container PID 1
 2. The user is expected to exec into the `whoc` container and invoke a file pointing to `/proc/self/exe` (e.g. `docker exec whoc_ctr /proc/self/exe`)
-3. Once the exec occures, the container runtime re-executes itself inside the container
+3. Once the exec occurs, the container runtime re-executes itself inside the container
 4. `upload_runtime` reads the runtime binary through `/proc/$runtime-pid/exe` and sends it to the configured remote server
 
 ![alt text](https://github.com/twistlock/whoc/blob/master/images/whoc_waitforexec.png?raw=true "whoc wait-for-exec mode")
