@@ -7,7 +7,7 @@ Poke at the underlying container runtime of your favorite CSP container platform
 As shown by runc [CVE-2019-5736](https://unit42.paloaltonetworks.com/breaking-docker-via-runc-explaining-cve-2019-5736/), Linux fork&exec based container runtimes expose themselves to the containers they're running through `/proc/self/exe`. `whoc` uses this to read the container runtime running it.
 
 ### Dynamic Mode
-This is `whoc` default mode that works against dynamicly linked container runtimes.
+This is `whoc` default mode that works against dynamically linked container runtimes.
 
 1. The `whoc` image entrypoint is set to `/proc/self/exe`
 2. The image's dynamic linker (`ld.so`) is replaced with `upload_runtime`
