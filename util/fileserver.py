@@ -1,11 +1,9 @@
 #!/usr/bin/env python3
-
 """
 Receives file uploads from HTTP POST requests and saves each file as:
   - ./${randstr}      : contents of received file
   - ./${randstr}.path : path of received file (if exists in the request)
 """
-
 import os
 from sys import argv
 import http.server as server
@@ -15,14 +13,15 @@ import random, string
 RAND_FILE_LEN = 6
 DEFAULT_PORT = 8080
 
-
-class HTTPRequestHandler(server.BaseHTTPRequestHandler):
-    """Extend SimpleHTTPRequestHandler to handle PUT requests"""
+class FileServer(server.BaseHTTPRequestHandler):
+    """
+    Simple file server
+    """
     def do_POST(self):
         """Save a file from an HTTP POST request"""
         # Get the file's length
         if 'Content-Length' not in self.headers: 
-            printf("[!] No Content-Length header")    
+            print("[!] No Content-Length header")    
             self.send_response_end_headers(411)  # 411 Length Required
             return
         file_length = int(self.headers['Content-Length'])
@@ -38,7 +37,6 @@ class HTTPRequestHandler(server.BaseHTTPRequestHandler):
                 except Exception: # very lazy try/except clause
                     filepath = ""
 
-        
         # Generate a random name to save the file as
         save_as = rand_filename(RAND_FILE_LEN)
         if filepath:
@@ -92,10 +90,9 @@ def main():
         port = DEFAULT_PORT
 
     server_address = ("0.0.0.0", port)
-    httpd = server.HTTPServer(server_address, HTTPRequestHandler)
-    print("Waiting for file uploads at {}\n".format(port))
+    httpd = server.HTTPServer(server_address, FileServer)
+    print(f"Waiting for file uploads at {port}\n")
     httpd.serve_forever()
-
 
 if __name__ == '__main__':
     main()

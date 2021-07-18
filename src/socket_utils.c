@@ -13,8 +13,8 @@ int connect_to_server(const char *server_ip, unsigned int port, time_t send_time
         return -1;
     }
 
-    // Set send timeout to 5 minutes
-    timeout.tv_sec = send_timeout; //300;
+    // Set send timeout
+    timeout.tv_sec = send_timeout; 
     timeout.tv_usec = 0;
     if (setsockopt (sockfd, SOL_SOCKET, SO_RCVTIMEO, (char *)&timeout, sizeof(timeout)) < 0)
     {
@@ -22,8 +22,8 @@ int connect_to_server(const char *server_ip, unsigned int port, time_t send_time
         close(sockfd);
         return -1; 
     } 
-    // Set receive timeout to 2 minutes
-    timeout.tv_sec = recv_timeout; //120;
+    // Set receive timeout 
+    timeout.tv_sec = recv_timeout;
     if (setsockopt (sockfd, SOL_SOCKET, SO_SNDTIMEO, (char *)&timeout, sizeof(timeout)) < 0)
     {
         printf("[!] connect_to_server: setsockopt(SO_SNDTIMEO) failed with '%s'\n", strerror(errno));

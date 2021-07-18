@@ -41,11 +41,11 @@ static struct option long_options[] =
 /* Configuration for current run, should mirror the long_options array */
 typedef struct config
 {
-	const char * server_ip;
-	unsigned int port;
-	bool wait_for_exec;
-	const char * exec_extra_arg;
-	const char * exec_bin;
+    const char * server_ip;
+    unsigned int port;
+    bool wait_for_exec;
+    const char * exec_extra_arg;
+    const char * exec_bin;
     bool exec_readdir_mode;
 } config;
 

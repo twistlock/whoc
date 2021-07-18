@@ -29,7 +29,7 @@ struct linux_dirent64 {
 
 // - Funcs - //
 
-/* Guess the next pid in our pid namespace by forking a child process and inspecting his pid */ 
+/* Guess the next pid in our pid namespace by forking a child process and inspecting its pid */ 
 pid_t guess_next_pid(void);
 
 

@@ -13,7 +13,7 @@
 
 // - Functions - //
 
-/* Connects to remote server though TCP */
+/* Connects to remote server over TCP */
 int connect_to_server(const char *server_ip, unsigned int port, time_t send_timeout, time_t recv_timeout);
 
 /* Send buffer to socket */

@@ -8,7 +8,7 @@ void print_help(void)
 "Options:\n"
 " -p, --port                 Port of remote server, defaults to %d\n"
 " -e, --exec                 Wait-for-exec mode for static container runtimes, wait until an exec to the container occurred\n"
-" -b, --exec-bin             In exec mode, overrides the default binary created for the exec, default is %d\n"
+" -b, --exec-bin             In exec mode, overrides the default binary created for the exec, default is %s\n"
 " -a, --exec-extra-argument  In exec mode, pass an additional argument to the runtime so it won't exit quickly\n"
 " -r, --exec-readdir-proc    In exec mode, instead of guessing the runtime pid (which gives whoc one shot of catching the runtime),\n"
 "                            find the runtime by searching for new processes under '/proc'.\n";
