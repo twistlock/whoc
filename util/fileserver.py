@@ -5,7 +5,8 @@ Receives file uploads from HTTP POST requests and saves each file as:
   - ./${randstr}.path : path of received file (if exists in the request)
 """
 import os
-from sys import argv
+import sys
+import signal
 import http.server as server
 import random, string
 
@@ -82,10 +83,15 @@ def rand_word(length):
    letters = string.ascii_lowercase
    return ''.join(random.choice(letters) for i in range(length))
 
+def signal_handler(sig, frame):
+    print("\n[+] Received Ctrl+C, exiting")
+    sys.exit(0)
 
 def main():
-    if len(argv) > 1:
-        port = int(argv[1])
+    signal.signal(signal.SIGINT, signal_handler) # catcht Ctrl+C
+
+    if len(sys.argv) > 1:
+        port = int(sys.argv[1])
     else:
         port = DEFAULT_PORT
 
@@ -96,3 +102,8 @@ def main():
 
 if __name__ == '__main__':
     main()
+
+
+
+
+
