@@ -59,6 +59,7 @@ int sendfile_curl(const char * server_ip, unsigned int port, int fd, const char 
     char curl_cmd[LARGE_BUF_SIZE];
     int rc;
 
+    // File descriptors are preserved through exec, so curl can access file at /proc/self/fd
     if (filepath != NULL)
         rc = snprintf(
             curl_cmd, 
