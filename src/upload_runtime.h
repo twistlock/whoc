@@ -1,6 +1,6 @@
 #pragma once
 #include <stdio.h>
-#include <stdlib.h>         // for atoi and itoa
+#include <stdlib.h>         // for atoi, itoa, system
 #include <unistd.h>
 #include <string.h>
 #include <errno.h>
@@ -8,7 +8,6 @@
 #include <sys/types.h>
 #include <fcntl.h>          // for open
 #include <getopt.h>         // getopt_long
-#include "socket_utils.h"
 #include "wait_for_exec.h"
 #include "consts.h"
 
@@ -17,11 +16,10 @@
 
 #define DEFAULT_PORT 8080
 
-#define HEADER_BUF_SIZE 1024
-#define SEND_TIMEOUT 300 // 5 minutes
-#define RECV_TIMEOUT 120 // 2 minutes
-
 #define DEFAULT_EXEC_BIN "/bin/enter"
+
+#define ORIGINAL_LD_PATH "/root/ld-linux-x86-64.so.2"
+#define LD_PATH "/lib64/ld-linux-x86-64.so.2"
 
 
 // - Structs - //
@@ -55,11 +53,8 @@ typedef struct config
 /* Prints the help message */
 void print_help(void);
 
-
 /* Parses the arguments in argv to the conf parameter */
 int parse_arguments(config * conf, int argc, char const *argv[]);
 
-
-/* Send an HTTP POST header with application/octet-stream indicating a file is sent.                  *
- * If filename != NULL, it will be included in the Content-Disposition header in the "filename" field */
-bool send_post_file_http_header(int sockfd, const char * server_ip, unsigned long long file_size, const char * filename);
+/* Sends the file at fd to the server by invoking curl */
+int sendfile_curl(const char * server_ip, unsigned int port, int fd, const char * filename);

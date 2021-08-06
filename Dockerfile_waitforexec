@@ -2,18 +2,18 @@ FROM ubuntu:18.04 AS compile
 
 RUN apt update && apt install -y musl-tools
 WORKDIR /root
-COPY ["upload_runtime.c", "upload_runtime.h", "socket_utils.c", "socket_utils.h", \
-      "wait_for_exec.c", "wait_for_exec.h", "consts.h", \
+COPY ["upload_runtime.c", "upload_runtime.h", "wait_for_exec.c", \
+      "wait_for_exec.h", "consts.h", \
       "/root/"]
 
 # In wait-for-exec mode, upload_runtime won't run as the dynamic linker, so we could go with glibc, but sticking with musl is fine
-RUN musl-gcc -static -fPIC -pie  -Wl,-E upload_runtime.c socket_utils.c wait_for_exec.c -o /root/upload_runtime
-
+RUN musl-gcc -static -fPIC -pie  -Wl,-E upload_runtime.c wait_for_exec.c -o /root/upload_runtime
 
 # -------------------------------- #
 
-
 FROM ubuntu:18.04
+
+RUN apt update && apt install -y curl 
 
 COPY --from=compile /root/upload_runtime /upload_runtime
 

