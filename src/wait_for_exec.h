@@ -14,9 +14,6 @@
 #include "consts.h"
 
 
-#define DEFAULT_EXEC_BIN "/bin/enter"
-
-
 // For getdents64()
 struct linux_dirent64 {
    ino_t          d_ino;    /* 64-bit inode number */
