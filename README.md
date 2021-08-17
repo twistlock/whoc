@@ -2,6 +2,7 @@
 A container image that extracts the underlying container runtime and sends it to a remote server.
 Poke at the underlying container runtime of your favorite CSP container platform!
 
+[WhoC at Defcon 29 Cloud Village](https://www.youtube.com/watch?v=DF0qoCsHKT4)
 
 ## How does it work?
 As shown by runc [CVE-2019-5736](https://unit42.paloaltonetworks.com/breaking-docker-via-runc-explaining-cve-2019-5736/), traditional Linux container runtimes expose themselves to the containers they're running through `/proc/self/exe`. `whoc` uses this link to read the container runtime executing it.
