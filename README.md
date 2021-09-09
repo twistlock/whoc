@@ -3,7 +3,7 @@ A container image that extracts the underlying container runtime and sends it to
 Poke at the underlying container runtime of your favorite CSP container platform!
 
 - [WhoC at Defcon 29 Cloud Village](https://www.youtube.com/watch?v=DF0qoCsHKT4)
-- [Azurescape](https://unit42.paloaltonetworks.com/azure-container-instances/) - whoc-powered reserach, the first cross-account container takeover in the public cloud
+- [Azurescape](https://unit42.paloaltonetworks.com/azure-container-instances/) - whoc-powered research, the first cross-account container takeover in the public cloud
 
 ## How does it work?
 As shown by runc [CVE-2019-5736](https://unit42.paloaltonetworks.com/breaking-docker-via-runc-explaining-cve-2019-5736/), traditional Linux container runtimes expose themselves to the containers they're running through `/proc/self/exe`. `whoc` uses this link to read the container runtime executing it.
