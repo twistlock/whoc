@@ -3,7 +3,7 @@ A container image that extracts the underlying container runtime and sends it to
 Poke at the underlying container runtime of your favorite CSP container platform!
 
 - [WhoC at Defcon 29 Cloud Village](https://www.youtube.com/watch?v=DF0qoCsHKT4)
-- [Azurescape](https://unit42.paloaltonetworks.com/azure-container-instances/) - whoc-powered research, the first cross-account container takeover in the public cloud
+- [Azurescape](https://unit42.paloaltonetworks.com/azure-container-instances/) - whoc-powered research, the first cross-account container takeover in the public cloud (70,000$ bounty)
 
 ## How does it work?
 As shown by runc [CVE-2019-5736](https://unit42.paloaltonetworks.com/breaking-docker-via-runc-explaining-cve-2019-5736/), traditional Linux container runtimes expose themselves to the containers they're running through `/proc/self/exe`. `whoc` uses this link to read the container runtime executing it.
@@ -11,11 +11,11 @@ As shown by runc [CVE-2019-5736](https://unit42.paloaltonetworks.com/breaking-do
 ### Dynamic Mode
 This is `whoc` default mode that works against dynamically linked container runtimes.
 
-1. The `whoc` image entrypoint is set to `/proc/self/exe`
-2. The image's dynamic linker (`ld.so`) is replaced with `upload_runtime`
-3. Once the image is run, the container runtime re-executes itself inside the container
-4. Given the runtime is dynamically linked, the kernel loads our fake dynamic linker (`upload_runtime`) to the runtime process and passes execution to it. 
-5. `upload_runtime` reads the runtime binary through `/proc/self/exe` and sends it to the configured remote server
+1. The `whoc` image entrypoint is set to `/proc/self/exe`, and the image's dynamic linker (`ld.so`) is replaced with `fake_ld`.
+2. Once the image is run, the container runtime re-executes itself inside the container.
+3. Given the runtime is dynamically linked, the kernel loads our fake dynamic linker to the runtime process and passes execution to it. 
+4. `fake_ld` obtains a file descriptor for the runtime binary by opening `/proc/self/exe`, and executes `upload_runtime`.
+5. `upload_runtime` reads the runtime binary from `/proc/self/fd/<runtime-fd>` and sends it to the configured remote server.
 
 ![alt text](https://github.com/twistlock/whoc/blob/master/images/whoc_dynamic.png?raw=true "whoc dynamic mode")
 
@@ -23,10 +23,10 @@ This is `whoc` default mode that works against dynamically linked container runt
 ### Wait-For-Exec Mode
 For statically linked container runtimes, `whoc` comes in another flavor: `whoc:waitforexec`.
 
-1. `upload_runtime` is the image entrypoint, and runs as the `whoc` container PID 1
-2. The user is expected to exec into the `whoc` container and invoke a file pointing to `/proc/self/exe` (e.g. `docker exec whoc_ctr /proc/self/exe`)
+1. `upload_runtime` is the image entrypoint, and runs as the `whoc` container PID 1.
+2. The user is expected to exec into the `whoc` container and invoke a file pointing to `/proc/self/exe` (e.g. `docker exec whoc-ctr /proc/self/exe`)
 3. Once the exec occurs, the container runtime re-executes itself inside the container
-4. `upload_runtime` reads the runtime binary through `/proc/$runtime-pid/exe` and sends it to the configured remote server
+4. `upload_runtime` reads the runtime binary through `/proc/<runtime-pid>/exe` and sends it to the configured remote server
 
 ![alt text](https://github.com/twistlock/whoc/blob/master/images/whoc_waitforexec.png?raw=true "whoc wait-for-exec mode")
 

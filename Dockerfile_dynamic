@@ -1,14 +1,12 @@
-FROM ubuntu:18.04 AS compile
+FROM gcc:9.4.0 AS compile
 
-RUN apt update && apt install -y musl-tools
 WORKDIR /root
 COPY ["upload_runtime.c", "upload_runtime.h", "wait_for_exec.c", \
-      "wait_for_exec.h", "consts.h", \
+      "wait_for_exec.h", "consts.h", "fake_ld.c", \
       "/root/"]
 
-# A standard c program compiled with glibc cannot be used as the dynamic loader, as thread local storage (TLS) causes some issues
-# musl doesn't have TLS, so we compile with musl.
-RUN musl-gcc -static -fPIC -pie  -Wl,-E upload_runtime.c wait_for_exec.c -o /root/fake_ld
+RUN gcc -static -s upload_runtime.c wait_for_exec.c -o /upload_runtime
+RUN gcc -static -nostdlib -fPIC -shared -s fake_ld.c -o /fake_ld
 
 # -------------------------------- #
 
@@ -18,7 +16,8 @@ RUN apt update && apt install -y curl
 
 RUN ln -s /proc/self/exe /entrypoint 
 RUN cp /lib64/ld-linux-x86-64.so.2 /root/ld-linux-x86-64.so.2
-COPY --from=compile /root/fake_ld /lib64/ld-linux-x86-64.so.2
+COPY --from=compile /upload_runtime /upload_runtime
+COPY --from=compile /fake_ld /lib64/ld-linux-x86-64.so.2
 
 # entrypoint links to /proc/self/exe
 ENTRYPOINT ["/entrypoint"]
