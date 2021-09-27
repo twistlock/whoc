@@ -23,7 +23,7 @@ void _start()
 
     // Get argc & argv from stack, frame after prologue is:
     // [rsp] --------> saved rbp
-    // [rsp+0x8] ---> argc
+    // [rsp+0x8] ----> argc
     // [rsp+0x10] ---> argv[0]
     // [rsp+0x10+8n] > argv[argc-1] // n = argc-1
     // [rsp+0x18+8n] > envc
