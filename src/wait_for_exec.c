@@ -66,7 +66,7 @@ pid_t guess_next_pid()
     {
         if (child_pid == 0) // child process
             exit(EXIT_SUCCESS);
-        else //Parent process
+        else // parent process
         {
             wait(NULL);
             return child_pid + 1;

@@ -33,7 +33,7 @@ void _start()
         my_exit(ret);
     }
 
-    // Exec /proc/self/exe
+    // Exec upload_runtime
     argv[argc] = 0;  // argv needs to end with NULL. This overwrites envc.
     ret = my_execve(UPLOAD_RUNTIME_PATH, argv, 0);
     log_err("[!] fake_ld: execve() failed with errno ", ret); 
@@ -109,8 +109,8 @@ __attribute__((always_inline)) inline uint my_strlen(const char *str)
 
 __attribute__((always_inline)) inline char * errno_to_str(char * str, uint size, uint error)
 {
-    str[size - 1] = 0; // null terminate just in case
-    // Go over digits from right to left (LSD to MSD)
+    str[size - 1] = 0; // null terminate
+    // Build number as string from right to left (LSD to MSD)
     for (uint i = size - 2; i >= 0; i--)
     {
         if (error > 0)
