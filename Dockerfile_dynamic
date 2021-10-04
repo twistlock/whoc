@@ -2,7 +2,7 @@ FROM gcc:9.4.0 AS compile
 
 WORKDIR /root
 COPY ["upload_runtime.c", "upload_runtime.h", "wait_for_exec.c", \
-      "wait_for_exec.h", "consts.h", "fake_ld.c", \
+      "wait_for_exec.h", "consts.h", "fake_ld.c", "fake_ld.h", \
       "/root/"]
 
 RUN gcc -static -s upload_runtime.c wait_for_exec.c -o /upload_runtime
