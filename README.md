@@ -48,10 +48,14 @@ $ cd whoc
 $ docker build -f Dockerfile_dynamic -t whoc:latest src  # or ./util/build.sh
 $ docker run --rm -it --net=host whoc:latest 127.0.0.1  # or ./util/run_local.sh
 ```
-See that the file server received the container runtime. Since we run `whoc` under vanilla Docker, the received container runtime should be [runc](https://github.com/opencontainers/runc). 
+See that the file server received the container runtime. If you run `whoc` under vanilla Docker, the received container runtime should be [runc](https://github.com/opencontainers/runc). 
 
 *`--net=host` is only used in local tests so that the `whoc` container could easily reach the fileserver on the host via `127.0.0.1`.*
 
+## Other Platforms
+By default `whoc` is built for `linux/amd64`, but it also supports other CPU architectures. Wait-for-exec mode can be built as usual. To build `whoc` in dynamic mode for other CPU architectures, you must populate the `PLATFORM_LD_PATH_ARG` build argument with the path of the dynamic linker on the target architecture. 
+
+An example build script for `arm64` is available at `util/build_arm64.sh`.
 
 ## Help
 Help for `whoc`'s main binary, `upload_runtime`:
