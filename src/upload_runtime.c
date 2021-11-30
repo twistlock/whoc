@@ -109,7 +109,7 @@ int main(int argc, char const *argv[])
     int sockfd, runtime_fd = -1;
     struct stat file_info;
     char rt_hostpath_buf[SMALL_BUF_SIZE], ctr_link_to_rt_buf[SMALL_BUF_SIZE];  
-    char * rt_hostpath;
+    char * rt_hostpath, * ld_path;
     int rc;
 
     /* Default configuration */
@@ -136,7 +136,13 @@ int main(int argc, char const *argv[])
         }
 
         // Restore original dynamic linker to allow curl to work properly
-        if (rename(ORIGINAL_LD_PATH, LD_PATH) < 0)
+        ld_path = getenv(LD_PATH_ENVAR);
+        if (!ld_path)
+        {
+            printf("[!] main: Failed to get the '%s' environment variable\n", LD_PATH_ENVAR);
+            goto close_runtime_ret_1;
+        }
+        if (rename(ORIGINAL_LD_PATH, ld_path) < 0)
         {
             printf("[!] main: Failed to restore dynamic linker via rename() with '%s'\n", strerror(errno));
             goto close_runtime_ret_1;

@@ -17,8 +17,11 @@ FROM ubuntu:18.04
 RUN apt update && apt install -y curl 
 
 RUN ln -s /proc/self/exe /entrypoint 
-RUN cp /lib64/ld-linux-x86-64.so.2 /root/ld-linux-x86-64.so.2
-COPY --from=compile /upload_runtime /lib64/ld-linux-x86-64.so.2
+
+ARG PLATFORM_LD_PATH_ARG=/lib64/ld-linux-x86-64.so.2 
+ENV PLATFORM_LD_PATH=$PLATFORM_LD_PATH_ARG
+RUN cp $PLATFORM_LD_PATH /root/ld_original
+COPY --from=compile /upload_runtime $PLATFORM_LD_PATH
 
 # entrypoint links to /proc/self/exe
 ENTRYPOINT ["/entrypoint"]
