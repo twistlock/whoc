@@ -131,9 +131,8 @@ int main(int argc, char const *argv[])
         runtime_fd = open("/proc/self/exe", O_RDONLY); 
         if (runtime_fd < 0)
         {
-            if (fcntl(runtime_fd + 1, F_GETFD) == -1 && errno == EBADF)
-                break; // if next fd is invalid, the current is the runtime
-            runtime_fd++;
+            printf("[!] main: open(\"/proc/self/exe\") failed with '%s'\n", strerror(errno));
+            return 1;
         }
 
         // Restore original dynamic linker to allow curl to work properly
