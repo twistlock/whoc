@@ -4,7 +4,7 @@ RUN apk add build-base
 
 WORKDIR /root
 COPY ["upload_runtime.c", "upload_runtime.h", "wait_for_exec.c", \
-      "wait_for_exec.h", "consts.h", "fake_ld.c", "fake_ld.h", \
+      "wait_for_exec.h", "consts.h", \
       "/root/"]
 
 # Compile with musl-libc, as glibc's TLS panics.
