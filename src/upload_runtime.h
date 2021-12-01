@@ -18,9 +18,8 @@
 
 #define DEFAULT_EXEC_BIN "/bin/enter"
 
-#define ORIGINAL_LD_PATH "/root/ld-linux-x86-64.so.2"
-#define LD_PATH "/lib64/ld-linux-x86-64.so.2"
-
+#define ORIGINAL_LD_PATH "/root/ld_original"
+#define LD_PATH_ENVAR "PLATFORM_LD_PATH"
 
 // - Structs - //
 

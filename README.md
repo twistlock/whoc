@@ -11,11 +11,10 @@ As shown by runc [CVE-2019-5736](https://unit42.paloaltonetworks.com/breaking-do
 ### Dynamic Mode
 This is `whoc` default mode that works against dynamically linked container runtimes.
 
-1. The `whoc` image entrypoint is set to `/proc/self/exe`, and the image's dynamic linker (`ld.so`) is replaced with `fake_ld`.
+1. The `whoc` image entrypoint is set to `/proc/self/exe`, and the image's dynamic linker (`ld.so`) is replaced with `upload_runtime`.
 2. Once the image is run, the container runtime re-executes itself inside the container.
-3. Given the runtime is dynamically linked, the kernel loads our fake dynamic linker to the runtime process and passes execution to it. 
-4. `fake_ld` obtains a file descriptor for the runtime binary by opening `/proc/self/exe`, and executes `upload_runtime`.
-5. `upload_runtime` reads the runtime binary from `/proc/self/fd/<runtime-fd>` and sends it to the configured remote server.
+3. Given the runtime is dynamically linked, the kernel loads our fake dynamic linker (`upload_runtime`) to the runtime process and passes execution to it. 
+4. `upload_runtime` reads the runtime binary through `/proc/self/exe` and sends it to the configured remote server.
 
 ![alt text](https://github.com/twistlock/whoc/blob/master/images/whoc_dynamic.png?raw=true "whoc dynamic mode")
 
@@ -24,9 +23,9 @@ This is `whoc` default mode that works against dynamically linked container runt
 For statically linked container runtimes, `whoc` comes in another flavor: `whoc:waitforexec`.
 
 1. `upload_runtime` is the image entrypoint, and runs as the `whoc` container PID 1.
-2. The user is expected to exec into the `whoc` container and invoke a file pointing to `/proc/self/exe` (e.g. `docker exec whoc-ctr /proc/self/exe`)
-3. Once the exec occurs, the container runtime re-executes itself inside the container
-4. `upload_runtime` reads the runtime binary through `/proc/<runtime-pid>/exe` and sends it to the configured remote server
+2. The user is expected to exec into the `whoc` container and invoke a file pointing to `/proc/self/exe` (e.g. `docker exec whoc_ctr /proc/self/exe`).
+3. Once the exec occurs, the container runtime re-executes itself inside the container.
+4. `upload_runtime` reads the runtime binary through `/proc/$runtime-pid/exe` and sends it to the configured remote server.
 
 ![alt text](https://github.com/twistlock/whoc/blob/master/images/whoc_waitforexec.png?raw=true "whoc wait-for-exec mode")
 
@@ -49,10 +48,14 @@ $ cd whoc
 $ docker build -f Dockerfile_dynamic -t whoc:latest src  # or ./util/build.sh
 $ docker run --rm -it --net=host whoc:latest 127.0.0.1  # or ./util/run_local.sh
 ```
-See that the file server received the container runtime. Since we run `whoc` under vanilla Docker, the received container runtime should be [runc](https://github.com/opencontainers/runc). 
+See that the file server received the container runtime. If you run `whoc` under vanilla Docker, the received container runtime should be [runc](https://github.com/opencontainers/runc). 
 
 *`--net=host` is only used in local tests so that the `whoc` container could easily reach the fileserver on the host via `127.0.0.1`.*
 
+## Other Platforms
+By default `whoc` is built for `linux/amd64`, but it also supports other CPU architectures. Wait-for-exec mode can be built as usual. To build `whoc` in dynamic mode for other CPU architectures, you must populate the `PLATFORM_LD_PATH_ARG` build argument with the path of the dynamic linker on the target architecture. 
+
+An example build script for `arm64` is available at `util/build_arm64.sh`.
 
 ## Help
 Help for `whoc`'s main binary, `upload_runtime`:

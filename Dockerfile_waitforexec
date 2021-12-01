@@ -1,11 +1,14 @@
-FROM gcc:9.4.0 AS compile
+FROM alpine:3.15 AS compile
+
+RUN apk add build-base
 
 WORKDIR /root
 COPY ["upload_runtime.c", "upload_runtime.h", "wait_for_exec.c", \
       "wait_for_exec.h", "consts.h", \
       "/root/"]
 
-RUN gcc -static -s upload_runtime.c wait_for_exec.c -o /upload_runtime
+# In wait-for-exec mode, upload_runtime won't run as the dynamic linker, so we could go with glibc, but sticking with musl is fine
+RUN gcc -static-pie -s upload_runtime.c wait_for_exec.c -o /upload_runtime
 
 # -------------------------------- #
 

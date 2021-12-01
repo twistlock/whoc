@@ -106,7 +106,7 @@ int catch_rt_guess_pid(const char * exec_bin_path)
     }
 
     // Try to catch the runtime
-    printf("[+] Waiting for the runtime to exec into container (run `<runtime> exec whoc-ctr-name %s`)\n", exec_bin_path);
+    printf("[+] Waiting for the runtime to exec into container (run `<runtime> exec <whoc-ctr-name> %s`)\n", exec_bin_path);
     while (runtime_fd < 0)
         runtime_fd = open(runtime_path, O_RDONLY);
 
@@ -131,7 +131,7 @@ int catch_rt_getdents_proc(const char * exec_bin_path)
     }
 
     // Try to catch the runtime
-    printf("[+] Waiting for the runtime to exec into container (run `<runtime> exec whoc-ctr-name %s`)\n", exec_bin_path);
+    printf("[+] Waiting for the runtime to exec into container (run `<runtime> exec <whoc-ctr-name> %s`)\n", exec_bin_path);
     printf("[+] Searching for the runtime process under '/proc'...\n");
 
     // Go over dentries at /proc
