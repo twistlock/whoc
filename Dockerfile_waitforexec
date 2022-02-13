@@ -17,6 +17,8 @@ FROM ubuntu:18.04
 RUN apt update && apt install -y curl 
 
 COPY --from=compile /upload_runtime /upload_runtime
+# Allow upload_runtime to create a binary pointing to /proc/self/exe
+RUN chmod ugo+rwx /bin 
 
 # run upload_runtime in wait_for_exec mode
 ENTRYPOINT ["/upload_runtime", "-e"]
