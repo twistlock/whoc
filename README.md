@@ -31,22 +31,21 @@ For statically linked container runtimes, `whoc` comes in another flavor: `whoc:
 
 ## Try Locally
 You'll need `docker` and `python3` installed. Clone the repository:
-```console
-$ git clone git@github.com:twistlock/whoc.git
+```shell
+git clone git@github.com:twistlock/whoc.git && cd whoc
 ```
 
 Set up a file server to receive the extracted container runtime:
-```console
-$ cd whoc
-$ mkdir -p stash && cd stash
-$ ln -s ../util/fileserver.py fileserver 
-$ ./fileserver
+```shell
+mkdir -p stash && cd stash
+ln -s ../util/fileserver.py fileserver 
+./fileserver
 ```
 From another shell, run the `whoc` image in your container environment of choice, for example Docker:
-```console
-$ cd whoc
-$ docker build -f Dockerfile_dynamic -t whoc:latest src  # or ./util/build.sh
-$ docker run --rm -it --net=host whoc:latest 127.0.0.1  # or ./util/run_local.sh
+```shell
+cd whoc
+docker build -f Dockerfile_dynamic -t whoc:latest src  # or ./util/build.sh
+docker run --rm -it --net=host whoc:latest 127.0.0.1  # or ./util/run_local.sh
 ```
 See that the file server received the container runtime. If you run `whoc` under vanilla Docker, the received container runtime should be [runc](https://github.com/opencontainers/runc). 
 
